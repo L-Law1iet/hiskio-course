@@ -35,4 +35,16 @@ jobs:
         pushd cicd/application
         make yaml-lint
         popd
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - users: actions/checkout@v2
+
+    - name: build docker-image
+      run: |
+        pushd cicd/application
+        make build-image
+        popd
+
  
