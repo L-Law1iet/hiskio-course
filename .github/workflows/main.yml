@@ -38,33 +38,29 @@ jobs:
 
     - name: Install minikube
       run: |
-        curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        curl -Lo minikube https://github.com/kubernetes/minikube/releases/download/v1.22.0-beta.0/minikube-linux-amd64
         chmod +x minikube
         sudo mv ./minikube /usr/local/bin
-    - uses: azure/setup-kubectl@v1
 
-    - name: Install kubernetes
-      run:
-        minikube start --driver=docker
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
     - name: Install bats
       run: |
         git clone https://github.com/bats-core/bats-core.git
         cd bats-core/
         sudo ./install.sh /usr/local
-    - name: Deploy K8S Yaml
+
+    - name: Install kubernetes and run Test
       run: |
+        minikube start --driver=docker
         pushd cicd/application
         kubectl apply -f yamls
-        popd
-    - name: Wait Nginx Deployment
-      run: |
-        #timeout 120(5*24) sec
         WAIT_TIME=0 ;until [ $WAIT_TIME -eq 24 ] || [ "3" = "$(kubectl get deployment nginx -ojsonpath='{.status.readyReplicas}')" ]; do echo "sleep ${WAIT_TIME}"; sleep 5; WAIT_TIME=$((WAIT_TIME+1)); done
-    - name: Run Bats
-      run: |
-        pushd cicd/application
-        make TYPE=minikube k8s-test
+        TYPE=minikube bats -t tests/test.bats
         popd
   build-image:
     runs-on: ubuntu-latest
