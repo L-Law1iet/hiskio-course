@@ -62,18 +62,3 @@ jobs:
         WAIT_TIME=0 ;until [ $WAIT_TIME -eq 24 ] || [ "3" = "$(kubectl get deployment nginx -ojsonpath='{.status.readyReplicas}')" ]; do echo "sleep ${WAIT_TIME}"; sleep 5; WAIT_TIME=$((WAIT_TIME+1)); done
         TYPE=minikube bats -t tests/test.bats
         popd
-  build-image:
-    runs-on: ubuntu-latest
-    needs: test-k8s-minikube
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set env
-      run: echo "::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-    - name: Docker login
-      run: |
-        docker login -u ${{ secrets.dockerUsername }} -p  ${{ secrets.dockerPassword}}
-    - name: Build/Push image
-      run: |
-        pushd cicd/application
-        make VERSION=${{ env.RELEASE_VERSION }} OTHER=${{ env.RELEASE_VERSION }} push-image
-        popd
