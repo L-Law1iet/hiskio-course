@@ -68,6 +68,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set env
+      env: ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
       run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
     - name: Docker login
       run: |
