@@ -75,5 +75,5 @@ jobs:
     - name: Build/Push image
       run: |
         pushd cicd/application
-        make VERSION=${{ env.RELEASE_VERSION }} OTHER=${{ env.RELEASE_VERSION }} push-image
+        make VERSION=${{ github.ref_name }} OTHER=${{ github.ref_name }} push-image
         popd
